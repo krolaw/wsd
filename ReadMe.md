@@ -1,4 +1,5 @@
 ---
+layout: page
 title: Web Sequence Diagrams
 ---
 
@@ -46,6 +47,10 @@ B->A: Authentication Response
 A->A: Contemplates\nlife\nchoices
 "></sequence-diagram>
 ```
+
+## Repository
+
+https://github.com/krolaw/wsd
 
 ## TODOs
 
