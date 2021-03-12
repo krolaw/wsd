@@ -5,10 +5,12 @@ title: Web Sequence Diagrams
 
 # Web Sequence Diagrams
 
-Web Sequence Diagrams is a small js library for implementing a custom web tag `<sequence-diagram>` that transforms code in its `data` attribute into an SVG diagram view.  
+*This code is very new and is not considered stable*
+
+Web Sequence Diagrams is a small js library for implementing a custom web tag `<sequence-diagram>` that transforms code in its `data` attribute into an SVG diagram view. It is highly configurable by embedding css.
 
 <noscript>
-*Note:* Javascript has been disabled, view this page here: https://krolaw.github.io/wsd/ReadMe
+<em>Note:</em> Javascript has been disabled, view this page here: https://krolaw.github.io/wsd/ReadMe
 </noscript>
 
 <script src="https://krolaw.github.io/wsd/wsd.js"></script>
@@ -55,8 +57,9 @@ A->A: Contemplates\nlife\nchoices
 ## TODOs
 
 - note over
-- blocks
+- syntax docs
+- css docs
 - optional base titles
 - colour blocks?
 - licence
-- text and fix many many bugs
+- check and fix many many bugs
