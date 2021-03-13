@@ -7,6 +7,7 @@ svg { border: 1pt black solid; display: inline-block;
     font-family: sans-serif; stroke: black; stroke-width: 1; fill:none}
 svg > .title, .opt text { font-weight: bold;}
 svg .arrow .head { fill: black }
+svg .dashed { stroke-dasharray: 5,2 }
 svg .opt rect.border, .opt line, .opt path { stroke-width: 2 }
 text { fill: black; stroke-width: 0 }
 rect.textBackground { fill: white; stroke-width: 0; fill-opacity:0.7 }
@@ -111,18 +112,18 @@ function Diagram(dom, data, style, styleURL) {
             default:
                 let [from,to] = split(cmd,"->");
                 if(to == null) continue;
-                let dotted = false;
-                if(to.substr(to.length-1)=='-') {
-                    dotted = true;
-                    to = to.substr(0,to.length-1);
+                let dashed = false;
+                if(from.substr(from.length-1)=='-') {
+                    dashed = true;
+                    from = from.substr(0,from.length-1);
                 }
                 let fromIndex = actorsIndexOf(from);
                 let toIndex = actorsIndexOf(to);
                 if(fromIndex == toIndex) {
-                    actions.push(new Loop(svg, fromIndex, fromIndex+1, param))
+                    actions.push(new Loop(svg, fromIndex, fromIndex+1, param, dashed))
                     break;
                 }
-                actions.push(new Arrow(svg, fromIndex,toIndex, param, dotted));
+                actions.push(new Arrow(svg, fromIndex,toIndex, param, dashed));
         }
     }
 
@@ -286,16 +287,16 @@ class Action {
 }
 
 class Arrow extends Action {
-    constructor(dom,fromIndex,toIndex,comment,dotted) {
+    constructor(dom,fromIndex,toIndex,comment,dashed) {
         super(dom,'arrow',fromIndex,toIndex, comment);
-        this.line = makeSvg(this.top,'line',dotted?'dotted':null);
+        this.line = makeSvg(this.top,'line',dashed?'dashed':null);
         this.minWidth = () => this.comment.width+3*gap;
-        this.height = this.comment.height+gap;
+        this.height = this.comment.height+gap+gap/4;
         this.head = makeSvg(this.top,'path','head');
     }
 
     position(top, from, to) {
-        let y = top+this.comment.height;
+        let y = top+this.comment.height+gap/4;
         setAttrs(this.line, {'x1':from, 'x2':to, 'y1':y, 'y2':y  });
         this.line.classList.add('line');
         this.comment.move((to<from ? from-gap-this.minWidth()+3*gap : from+gap),top);
@@ -329,16 +330,17 @@ class Note extends Action {
 }
 
 class Loop extends Action {
-    constructor(dom,fromIndex,toIndex,comment) {
+    constructor(dom,fromIndex,toIndex,comment, dashed) {
         super(dom,'arrow',fromIndex,toIndex,comment);
         this.minWidth = () => Math.max(this.comment.width+2*gap,6*gap);
         this.height = this.comment.height+2*gap;
+        this.dashed = dashed;
     }
 
     position(top, from, to) {
         let x = from+gap;
         this.comment.move(x,top+gap/2);
-        makeSvg(this.top,'path','line',{"d":"M"+from+","+
+        makeSvg(this.top,'path','line'+this.dashed?"dashed":"",{"d":"M"+from+","+
             top+"l"+(this.comment.width+2*gap)+",0l0,"+ (this.comment.height+1.5*gap)+
             "l"+(-this.comment.width-gap)+",0"});
         makeSvg(this.top,'path','head',{'d': 'M'+from+','+(top+this.height-.5*gap)
