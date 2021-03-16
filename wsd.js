@@ -3,7 +3,7 @@
 const ns = "http://www.w3.org/2000/svg";
 
 const defaultCSS = `
-svg { border: 1pt black solid; display: inline-block; 
+svg { border: 1pt black solid; display: inline-block; fill: #ddf;
     font-family: sans-serif; stroke: black; stroke-width: 1; fill:none}
 svg > .title, .opt text { font-weight: bold;}
 svg .arrow .head { fill: black }
@@ -61,11 +61,8 @@ function Diagram(dom, data, style, styleURL) {
         
     let svg = document.createElementNS(ns, 'svg');
     dom.appendChild(svg);
-    let lines = data.split("\n");
 
-    function ifsFromTo(fromIndex, toIndex) {
-        if(ifs.length == 0) return;
-    }
+    let lines = data.split("\n");
 
     for(var i in lines) {
         let line = lines[i].trim();
@@ -223,36 +220,38 @@ function makeTop(dom, className) {
     return makeSvg(dom, 'g', className);
 }
 
+class TSpan {
+    constructor(parent, content, className) {
+        this.obj = makeSvg(parent,'tspan',className);
+        this.obj.textContent = content;
+        setAttrs(this.obj,{"x":0,"y":0});
+        this.box = this.obj.getBBox();
+    }
+    move(x,y) {
+        this.obj.setAttribute("x",x-this.box.x);
+        this.obj.setAttribute("y",y-this.box.y);
+    }
+}
+
 class Text {
     constructor(parent, content, className, attrs) {
         this.bk = makeRect(parent, 0,0,0,0,"textBackground");
         this.obj = makeSvg(parent, 'text', className, attrs);
         this.width = 0;
         this.height = 0;
-        let offsetY = 0;
-        let offsetX = 0;
+        this.spans = [];
         content.split("\\n").forEach(t=>{
-            let tt = makeSvg(this.obj,'tspan',null,{"dy":offsetY,"dx":offsetX});
-            tt.textContent = t;
-            let box = tt.getBBox();
-            if(offsetX==0) this.obj.setAttribute("transform","translate(0,"+box.height+")");
-            offsetY = box.height;
-            offsetX = -box.width;
-            this.height += box.height;
-            this.width = Math.max(this.width, box.width);
+            let span = new TSpan(this.obj, t);
+            this.spans.push(span);
+            this.height += span.box.height;
+            this.width = Math.max(this.width, span.box.width);
         });
-        let b = this.obj.getBBox();
-        this.width = b.width;
-        this.height = b.height;
-        this.offsetY = b.y;
-
         setAttrs(this.bk,{width:this.width,height:this.height});
     }
     move(x,y) { 
-        this.obj.setAttribute("x",x);
-        this.obj.setAttribute("y",y+this.offsetY+gap);
         this.bk.setAttribute("x",x);
         this.bk.setAttribute("y",y);
+        this.spans.forEach(s=>{ s.move(x,y); y += s.box.height; });
     }
 }
 
