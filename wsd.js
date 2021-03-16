@@ -319,7 +319,7 @@ class Note extends Action {
     maxIndex() { return this.fromIndex(); }
 
     position(top, from, to) {
-        let x = this.leftEdge() == 0 ? (from+gap) : (from-this.leftEdge()-gap);
+        let x = this.leftEdge() == 0 ? (from+gap) : (from-this.leftEdge()+gap);
         this.comment.move(x+gap, top+gap);
         let h = this.height;
         let w = this.leftEdge()+this.rightEdge()-2*gap;
