@@ -308,7 +308,7 @@ class Arrow extends Action {
 class Note extends Action {
     constructor(dom,fromIndex,toIndex,comment) {
         super(dom,'note',fromIndex,fromIndex,comment);
-        let f = () => this.comment.width+4*gap;
+        let f = () => this.comment.width+5*gap;
         if(fromIndex < toIndex) {
             this.rightEdge = f;
         } else this.leftEdge = f;
@@ -319,10 +319,10 @@ class Note extends Action {
     maxIndex() { return this.fromIndex(); }
 
     position(top, from, to) {
-        let x = this.leftEdge() == 0 ? (from+gap) : (from-this.leftEdge()+gap);
+        let x = this.leftEdge() == 0 ? (from+gap) : (from-this.leftEdge()+2*gap);
         this.comment.move(x+gap, top+gap);
         let h = this.height;
-        let w = this.leftEdge()+this.rightEdge()-2*gap;
+        let w = this.leftEdge()+this.rightEdge()-3*gap;
         makeSvg(this.top,'path',null,{"d":"M"+(x+w-gap)+","+top+"l"+(gap-w)+",0l0,"+
             h+"l"+w+",0l0"+(gap-h)+"l"+(-gap)+","+(-gap)+"l0,"+gap+"l"+gap+",0"});
     }
