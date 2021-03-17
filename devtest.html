@@ -8,11 +8,15 @@ alias: A->Alice
 alias: B->Bob
 A->B: Authentication Request\nLine 2\nLine 3
 if: If : [Bob doesn't know Alice that well]
+if: If : [Alice wasn't very nice]
 note right: B : Bob thinks about it
-elif: Else : 
-note right: B : Bob still thinks about it
 end:
+elif: Else : 
+note left: B : Bob still thinks about it
+end:
+if: Test :
 B->A: Authentication Response
+end: 
 A-->A: Contemplates\nlife\nchoices
 "></sequence-diagram>
     

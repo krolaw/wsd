@@ -79,8 +79,9 @@ function Diagram(dom, data, style, styleURL) {
             case 'note left': {
                 let [from,comment] = split(param,":");
                 let fromIndex = actorsIndexOf(from);
-                actions.push(new Note(svg,fromIndex,fromIndex-1,comment));
-                
+                let n = new Note(svg,fromIndex,fromIndex-1,comment);
+                actions.push(n);
+                if(currentIf) currentIf.children.push(n);
             }break;
             case 'note right': {
                 let [from,comment] = split(param,":");
@@ -122,6 +123,7 @@ function Diagram(dom, data, style, styleURL) {
                 }
                 actions.push(new Arrow(svg, fromIndex,toIndex, param, dashed));
         }
+        
     }
 
     let top = gap;
@@ -316,8 +318,6 @@ class Note extends Action {
         this.height = this.comment.height+2*gap;
     }
 
-    maxIndex() { return this.fromIndex(); }
-
     position(top, from, to) {
         let x = this.leftEdge() == 0 ? (from+gap) : (from-this.leftEdge()+2*gap);
         this.comment.move(x+gap, top+gap);
@@ -365,8 +365,8 @@ class Opt {
         this.minWidth = () => 1;
     }
 
-    fromIndex() { return this.children.reduce((c,v)=>Math.min(c,v.fromIndex()),this.left) ?? this.left; }
-    toIndex() { return this.children.reduce((c,v)=>Math.max(c,v.maxIndex()),this.right) ?? this.right; }
+    fromIndex() { return this.children.reduce((c,v)=>Math.min(c,v.fromIndex()),this.left); }
+    toIndex() { return this.children.reduce((c,v)=>Math.max(c,v.toIndex()),this.right); }
 
     elif(title, comment) {
         this.width = Math.max(this.width ?? 0, this.titles[this.titles.length-1].width+
@@ -377,16 +377,18 @@ class Opt {
         this.comments.push(commentSvg);
     }
 
-    end() {
-        if(this.fromIndex() == this.toIndex()) {
-            this.re = this.rightEdge;
-            this.rightEdge = () => Math.max(this.re(),this.width-this.leftEdge());
-        } else
-            this.minWidth = () => this.width;
-    }
+    end() {}
 
-    leftEdge() { return gap+Math.max(0,...this.children.filter((c)=>c.fromIndex() == this.left).map(c=>c.leftEdge())); }
-    rightEdge() { return gap+Math.max(0,...this.children.filter((c)=>c.toIndex() == this.right).map(c=>c.rightEdge())); }
+    leftEdge() { return gap+this.children.filter((c)=>c.fromIndex() == this.left).reduce((t,c)=>Math.max(t,c.leftEdge()),0); }
+    rightEdge() { return gap+this.children.filter((c)=>c.toIndex() == this.right).reduce((t,c)=>Math.max(t,c.rightEdge()),this.calcWidth() - this.leftEdge()); }
+
+    calcWidth() {
+        let w = 0;
+        for(let i = 0; i < this.titles.length ; i++) {
+            w = Math.max(w, this.titles[i].width+this.comments[i].width);
+        }
+        return w+gap*2;
+    }
 
     position(top, from, to) {
         let le = this.leftEdge();
