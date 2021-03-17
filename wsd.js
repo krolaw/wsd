@@ -394,10 +394,10 @@ class Opt {
         let le = this.leftEdge();
         if(this.rect == null) {
             this.topY = top;
-            
-            this.rect = makeRect(this.top, from-le, top, to-from+le+this.rightEdge()-gap, 0, "border");
+            this.farRight = to+this.rightEdge()-gap;
+            this.rect = makeRect(this.top, from-le, top, this.farRight-from+le, 0, "border");
         } else {
-            makeSvg(this.top,"line","divider",{x1:from-le,y1:top,x2:to+this.rightEdge()-gap,y2:top});
+            makeSvg(this.top,"line","divider",{x1:from-le,y1:top,x2:this.farRight,y2:top});
         }
         if(this.titles.length > 0) {
             let t = this.titles.splice(0,1)[0];
