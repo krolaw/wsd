@@ -3,7 +3,7 @@
 const ns = "http://www.w3.org/2000/svg";
 
 const defaultCSS = `
-svg { border: 1pt black solid; display: inline-block; fill: #ddf;
+svg { border: 1pt black solid; display: inline-block; 
     font-family: sans-serif; stroke: black; stroke-width: 1; fill:none}
 svg > .title, .opt text { font-weight: bold;}
 svg .arrow .head { fill: black }
@@ -11,7 +11,8 @@ svg .dashed { stroke-dasharray: 5,2 }
 svg .opt rect.border, .opt line, .opt path { stroke-width: 2 }
 text { fill: black; stroke-width: 0 }
 rect.textBackground { fill: white; stroke-width: 0; fill-opacity:0.7 }
-.opt line { stroke-dasharray: 2,2 }`;
+.opt line { stroke-dasharray: 2,2 }
+.background { fill: white }`;
 
 class SequenceDiagram extends HTMLElement {
     connectedCallback() { 
@@ -62,6 +63,7 @@ function Diagram(dom, data, style, styleURL) {
     let svg = document.createElementNS(ns, 'svg');
     dom.appendChild(svg);
 
+    
     let lines = data.split("\n");
 
     for(var i in lines) {
@@ -190,6 +192,9 @@ function Diagram(dom, data, style, styleURL) {
         let c = centers[i];
         svg.insertBefore(makeSvg(null,'line',null,{'x1':c,'x2':c,'y1':headBottom,'y2':top}),svg.firstChild);
     }
+
+    svg.insertBefore(makeRect(null, 0,0,"100%", "100%", "background"),svg.firstChild);
+
 
     width = Math.max(width,centers[centers.length-1]);
 
