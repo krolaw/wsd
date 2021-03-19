@@ -10,7 +10,7 @@ svg .arrow .head { fill: black }
 svg .dashed { stroke-dasharray: 5,2 }
 svg .opt rect.border, .opt line, .opt path { stroke-width: 2 }
 text { fill: black; stroke-width: 0 }
-rect.textBackground { fill: white; stroke-width: 0; fill-opacity:0.7 }
+rect.text { stroke-width: 0; fill-opacity:0.7; }
 .opt line { stroke-dasharray: 2,2 }
 .background { fill: white }`;
 
@@ -18,26 +18,26 @@ class SequenceDiagram extends HTMLElement {
     connectedCallback() { 
         this.attachShadow({mode: 'open'});
         Diagram(this.shadowRoot,this.getAttribute('data'),
-            this.getAttribute('style'),this.getAttribute('style-url'));
+            this.getAttribute('css'),this.getAttribute('css-url'));
     }
 }
 
 const gap = 10;
 
-function Diagram(dom, data, style, styleURL) {
+function Diagram(dom, data, css, cssURL) {
     const defStyle = document.createElement('style');
     defStyle.textContent = defaultCSS;
     dom.appendChild(defStyle);
 
-    if(styleURL) {
+    if(cssURL) {
         const linkElem = document.createElement('link');
         linkElem.setAttribute('rel', 'stylesheet');
-        linkElem.setAttribute('href', styleURL);
+        linkElem.setAttribute('href', cssURL);
     }
 
-    if(style) {
+    if(css) {
         const s = document.createElement('style');
-        s.textContent = defaultCSS;
+        s.textContent = css;
         dom.appendChild(s);
     }
     
@@ -242,7 +242,8 @@ class TSpan {
 
 class Text {
     constructor(parent, content, className, attrs) {
-        this.bk = makeRect(parent, 0,0,0,0,"textBackground");
+        this.bk = makeRect(parent, 0,0,0,0,"text");
+        this.bk.classList.add("background")
         this.obj = makeSvg(parent, 'text', className, attrs);
         this.width = 0;
         this.height = 0;
