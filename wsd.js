@@ -345,9 +345,10 @@ class Loop extends Action {
     position(top, from, to) {
         let x = from+gap;
         this.comment.move(x,top+gap/2);
-        makeSvg(this.top,'path','line'+this.dashed?"dashed":"",{"d":"M"+from+","+
+        let line = makeSvg(this.top,'path','line',{"d":"M"+from+","+
             top+"l"+(this.comment.width+2*gap)+",0l0,"+ (this.comment.height+1.5*gap)+
             "l"+(-this.comment.width-gap)+",0"});
+        if(this.dashed) line.classList.add('dashed');
         makeSvg(this.top,'path','head',{'d': 'M'+from+','+(top+this.height-.5*gap)
             +'l'+gap+','+gap/2+'l0,'+(-gap)+'z'});
     }
