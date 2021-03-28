@@ -117,11 +117,11 @@ function Diagram(dom, data, style, styleURL) {
                 }
                 let fromIndex = actorsIndexOf(from);
                 let toIndex = actorsIndexOf(to);
-                if(fromIndex == toIndex) {
-                    actions.push(new Loop(svg, fromIndex, fromIndex+1, param, dashed))
-                    break;
-                }
-                actions.push(new Arrow(svg, fromIndex,toIndex, param, dashed));
+                let arrow = fromIndex == toIndex ?
+                    new Loop(svg, fromIndex, fromIndex+1, param, dashed)
+                    : new Arrow(svg, fromIndex,toIndex, param, dashed);
+                if(currentIf) currentIf.children.push(arrow);
+                actions.push(arrow);
         }
         
     }
@@ -159,10 +159,8 @@ function Diagram(dom, data, style, styleURL) {
         let leftIndex = Math.min(a.toIndex(),a.fromIndex());
         let rightIndex = Math.max(a.toIndex(),a.fromIndex());
 
-        // Centres
-        let d = a.minWidth() - centers[rightIndex]+centers[leftIndex];
-        if(d > 0) for(let i = rightIndex ; i<centers.length ; i++) centers[i] += d;
-
+        
+        
         // Left
         let l = a.leftEdge() - centers[leftIndex] + (centers[leftIndex-1] ?? 0);
         if(l > 0) for(let i = leftIndex ; i<centers.length ; i++) centers[i] += l;
@@ -170,6 +168,15 @@ function Diagram(dom, data, style, styleURL) {
         // Right
         let r = a.rightEdge() - centers[rightIndex+1] + centers[rightIndex];
         if(r > 0) for(let i = rightIndex+1 ; i<centers.length ; i++) centers[i] += r;
+
+
+        if(leftIndex == rightIndex) { rightIndex = leftIndex+1 }
+        // Centres
+        let d = a.minWidth() - centers[rightIndex]+centers[leftIndex];
+        if(d > 0) for(let i = rightIndex ; i<centers.length ; i++) centers[i] += d;
+
+        
+
     }
 
     for(let i in heads) {
@@ -289,7 +296,13 @@ class Action {
 
 class Arrow extends Action {
     constructor(dom,fromIndex,toIndex,comment,dashed) {
+        let reversed = false;
+        if(toIndex < fromIndex) {
+            reversed = true;
+            [toIndex,fromIndex] = [fromIndex,toIndex];
+        }
         super(dom,'arrow',fromIndex,toIndex, comment);
+        this.reversed = reversed;
         this.line = makeSvg(this.top,'line',dashed?'dashed':null);
         this.minWidth = () => this.comment.width+3*gap;
         this.height = this.comment.height+gap+gap/4;
@@ -300,9 +313,9 @@ class Arrow extends Action {
         let y = top+this.comment.height+gap/4;
         setAttrs(this.line, {'x1':from, 'x2':to, 'y1':y, 'y2':y  });
         this.line.classList.add('line');
-        this.comment.move((to<from ? from-gap-this.minWidth()+3*gap : from+gap),top);
-        let dir = gap * Math.sign(from-to);
-        this.head.setAttribute('d', 'M'+to+','+y
+        this.comment.move((this.reversed ? to-gap-this.minWidth()+3*gap : from+gap),top);
+        let dir = gap * (this.reversed ? 1 : -1);
+        this.head.setAttribute('d', 'M'+(this.reversed?from:to)+','+y
             +'l'+dir+','+gap/2+'l0,'+(-gap)+'z');
     }
 }
@@ -362,11 +375,11 @@ class Opt {
         this.left = Number.MAX_SAFE_INTEGER;
         this.right = -1;
         this.height = Math.max(titleSvg.height+gap,commentSvg.height+gap/2);
-        this.minWidth = () => 1;
+        this.minWidth = () => 0;
     }
 
-    fromIndex() { return this.children.reduce((c,v)=>Math.min(c,v.fromIndex()),this.left); }
-    toIndex() { return this.children.reduce((c,v)=>Math.max(c,v.toIndex()),this.right); }
+    fromIndex() { return this.left; }
+    toIndex() { return this.right; }
 
     elif(title, comment) {
         this.width = Math.max(this.width ?? 0, this.titles[this.titles.length-1].width+
@@ -377,10 +390,14 @@ class Opt {
         this.comments.push(commentSvg);
     }
 
-    end() {}
+    end() {
+        this.left = this.children.reduce((c,v)=>Math.min(c,v.fromIndex()),Number.MAX_SAFE_INTEGER);
+        this.right = this.children.reduce((c,v)=>Math.max(c,v.toIndex()),-1);
+        this.minWidth = () => this.calcWidth();
+    }
 
     leftEdge() { return gap+this.children.filter((c)=>c.fromIndex() == this.left).reduce((t,c)=>Math.max(t,c.leftEdge()),0); }
-    rightEdge() { return gap+this.children.filter((c)=>c.toIndex() == this.right).reduce((t,c)=>Math.max(t,c.rightEdge()),this.calcWidth() - this.leftEdge()); }
+    rightEdge() { return gap+this.children.filter((c)=>c.toIndex() == this.right).reduce((t,c)=>Math.max(t,c.rightEdge()),0); }
 
     calcWidth() {
         let w = 0;
@@ -394,9 +411,11 @@ class Opt {
         let le = this.leftEdge();
         if(this.rect == null) {
             this.topY = top;
-            this.farRight = to+this.rightEdge()-gap;
+            this.farRight = Math.max(from+this.calcWidth()-gap,to+this.rightEdge());
+            
+            
             this.rect = makeRect(this.top, from-le, top, this.farRight-from+le, 0, "border");
-        } else {
+        } else if(this.titles.length>0) {
             makeSvg(this.top,"line","divider",{x1:from-le,y1:top,x2:this.farRight,y2:top});
         }
         if(this.titles.length > 0) {
