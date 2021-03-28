@@ -3,40 +3,41 @@
 const ns = "http://www.w3.org/2000/svg";
 
 const defaultCSS = `
-svg { border: 1pt black solid; display: inline-block; fill: #ddf;
+svg { border: 1pt black solid; display: inline-block; 
     font-family: sans-serif; stroke: black; stroke-width: 1; fill:none}
 svg > .title, .opt text { font-weight: bold;}
 svg .arrow .head { fill: black }
 svg .dashed { stroke-dasharray: 5,2 }
 svg .opt rect.border, .opt line, .opt path { stroke-width: 2 }
 text { fill: black; stroke-width: 0 }
-rect.textBackground { fill: white; stroke-width: 0; fill-opacity:0.7 }
-.opt line { stroke-dasharray: 2,2 }`;
+rect.text { stroke-width: 0; fill-opacity:0.7; }
+.opt line { stroke-dasharray: 2,2 }
+.background { fill: white }`;
 
 class SequenceDiagram extends HTMLElement {
     connectedCallback() { 
         this.attachShadow({mode: 'open'});
         Diagram(this.shadowRoot,this.getAttribute('data'),
-            this.getAttribute('style'),this.getAttribute('style-url'));
+            this.getAttribute('css'),this.getAttribute('css-url'));
     }
 }
 
 const gap = 10;
 
-function Diagram(dom, data, style, styleURL) {
+function Diagram(dom, data, css, cssURL) {
     const defStyle = document.createElement('style');
     defStyle.textContent = defaultCSS;
     dom.appendChild(defStyle);
 
-    if(styleURL) {
+    if(cssURL) {
         const linkElem = document.createElement('link');
         linkElem.setAttribute('rel', 'stylesheet');
-        linkElem.setAttribute('href', styleURL);
+        linkElem.setAttribute('href', cssURL);
     }
 
-    if(style) {
+    if(css) {
         const s = document.createElement('style');
-        s.textContent = defaultCSS;
+        s.textContent = css;
         dom.appendChild(s);
     }
     
@@ -62,6 +63,7 @@ function Diagram(dom, data, style, styleURL) {
     let svg = document.createElementNS(ns, 'svg');
     dom.appendChild(svg);
 
+    
     let lines = data.split("\n");
 
     for(var i in lines) {
@@ -198,6 +200,9 @@ function Diagram(dom, data, style, styleURL) {
         svg.insertBefore(makeSvg(null,'line',null,{'x1':c,'x2':c,'y1':headBottom,'y2':top}),svg.firstChild);
     }
 
+    svg.insertBefore(makeRect(null, 0,0,"100%", "100%", "background"),svg.firstChild);
+
+
     width = Math.max(width,centers[centers.length-1]);
 
     svg.setAttribute("width",width);
@@ -244,7 +249,8 @@ class TSpan {
 
 class Text {
     constructor(parent, content, className, attrs) {
-        this.bk = makeRect(parent, 0,0,0,0,"textBackground");
+        this.bk = makeRect(parent, 0,0,0,0,"text");
+        this.bk.classList.add("background")
         this.obj = makeSvg(parent, 'text', className, attrs);
         this.width = 0;
         this.height = 0;
@@ -352,9 +358,10 @@ class Loop extends Action {
     position(top, from, to) {
         let x = from+gap;
         this.comment.move(x,top+gap/2);
-        makeSvg(this.top,'path','line'+this.dashed?"dashed":"",{"d":"M"+from+","+
+        let line = makeSvg(this.top,'path','line',{"d":"M"+from+","+
             top+"l"+(this.comment.width+2*gap)+",0l0,"+ (this.comment.height+1.5*gap)+
             "l"+(-this.comment.width-gap)+",0"});
+        if(this.dashed) line.classList.add('dashed');
         makeSvg(this.top,'path','head',{'d': 'M'+from+','+(top+this.height-.5*gap)
             +'l'+gap+','+gap/2+'l0,'+(-gap)+'z'});
     }
