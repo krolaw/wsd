@@ -350,7 +350,7 @@ class Note extends Action {
 class Loop extends Action {
     constructor(dom,fromIndex,toIndex,comment, dashed) {
         super(dom,'arrow',fromIndex,toIndex,comment);
-        this.minWidth = () => Math.max(this.comment.width+2*gap,6*gap);
+        this.minWidth = () => Math.max(this.comment.width+3*gap,6*gap);
         this.height = this.comment.height+2*gap;
         this.dashed = dashed;
     }
