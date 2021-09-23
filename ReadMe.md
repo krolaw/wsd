@@ -26,7 +26,7 @@ elif: Else :
 note right: B : Bob still thinks about it
 end:
 B-->A: Authentication Response
-A->A: Contemplates\nlife\nchoices
+A->A: Contemplates\nfriend\nchoices
 "></sequence-diagram>
 
 This allows diagrams to be edited in html or markdown code (without copying and pasting images). This can be convenient for quick changes and instant previews (i.e. md files in VS code).
@@ -46,7 +46,7 @@ elif: Else :
 note right: B : Bob still thinks about it
 end:
 B-->A: Authentication Response
-A->A: Contemplates\nlife\nchoices
+A->A: Contemplates\nfriend\nchoices
 "></sequence-diagram>
 ```
 
@@ -61,6 +61,5 @@ A->A: Contemplates\nlife\nchoices
 - css docs
 - optional base titles
 - colour blocks?
-- licence
 - check and fix many many bugs
 - account for line stroke-widths
